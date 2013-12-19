@@ -68,11 +68,37 @@ class bsa(object):
 
 class COUNTstruct:
     def __init__(self, xmlroot):
-        pass
+        self.date = xmlroot.find("date").text
+        self.time = xmlroot.find("time").text
+        self.traincount = xmlroot.find("tarincount").text
+    def __str__(self):
+        return "BART train count {self.date}; {self.time}\n{self.traincount} trains".format(self=self)
 
 class count(object):
     def __init__(self, **params):
-        pass
+        self.root = APIquery(cmd = "count", params = params).getxmlroot()
+        self.result = COUNTstruct(self.root)
+    def __str__(self):
+        return self.result.__str__()
+
+class ELEVstruct:
+    def __init__(self, xmlroot):
+        self.date = xmlroot.find("date").text
+        self.time = xmlroot.find("time").text
+        self.bsa_id = []
+        for bsa in xmlroot.findall("bsa id"):
+            station = bsa.find("station").text
+            typeof  = bsa.find("type").text
+            descrip = bsa.find("description").text
+            self.bsa_id.append({"station":station, "type":typeof, "descrip":descrip})
+    def __str__(self):
+        strResult = "BART Elevator Advisory {self.date}; {self.time}\n".format(self=self)
+        for bsa in self.bsa_id:
+            strResult += "Station: {}\n" \
+                         "Description: [{}] {}\n".format(bsa["station"], bsa["descrip"])
+        return strResult
+
+
 
 # estimated time of departure: et
 # http://api.bart.gov/api/etd.aspx?cmd=etd&orig=RICH
