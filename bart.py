@@ -12,34 +12,24 @@ else:
     print("BART_API_KEY environment variable does not exist")
     sys.exit()
 
-def query(cmd, querystr):
-    """query BART API at: http://api.bart.gov/api/{cmd}.aspx?"""
-    url = "http://api.bart.gov/api/{}.aspx?{}".format(cmd, querystr)
-    print("Querying BART with: {}".format(url))
+def APIquery(queryType = "", **parameters):
+    """bart.APIquery(**parameters) retrieves the xmltree root object from http://api.bart.gov"""
+    if not queryType:
+        try:
+            queryType = parameters["cmd"]
+        except KeyError:
+            print("cmd is a required keyword")
+            sys.exit()
+    parameters["key"] = key
+    queryStr = urllib.parse.urlencode(parameters)
+    url = "http://api.bart.gov/api/{}.aspx?{}".format(queryType, queryStr)
+    #print("Querying BART with: {}".format(url))
     with urllib.request.urlopen(url) as BART:
-        #response = BART.read()
         tree = ET.parse(BART)
-    return tree
-
-class APIquery(object):
-    def __init__(self, **params):
-        self.parameters = params
-        self.cmd = self.parameters["cmd"]
-        self.key = key 
-        self.parameters["key"] = self.key
-        self.querystr = self._getquerystr()
-    def _getquerystr(self):
-        return urllib.parse.urlencode(self.parameters)
-    def getxmlroot(self):
-        """query BART API at: http://api.bart.gov/api/{cmd}.aspx?"""
-        url = "http://api.bart.gov/api/{self.cmd}.aspx?{self.querystr}".format(self=self)
-        print("Querying BART with: {}".format(url))
-        with urllib.request.urlopen(url) as BART:
-            #response = BART.read()
-            tree = ET.parse(BART)
-        return tree.getroot()
+    return tree.getroot()
 
 class BSAstruct:
+    """bart.BSAstruct(): handles the xmltree root specific to the BART API bsa command"""
     def __init__(self, xmlroot):
         self.date = xmlroot.find("date").text
         self.time = xmlroot.find("time").text
@@ -60,33 +50,37 @@ class BSAstruct:
         return strResult
 
 class bsa(object):
-    def __init__(self, **params):
-        self.root = APIquery(cmd = "bsa", params = params).getxmlroot()
+    """bart.bsa(): BART Service Advisory"""
+    def __init__(self, **parameters):
+        self.root = APIquery(cmd = "bsa", **parameters)
         self.result = BSAstruct(self.root)
     def __str__(self):
         return self.result.__str__()
 
 class COUNTstruct:
+    """bart.COUNTstruct(): handles the xmltree root specific to the BART API count command"""
     def __init__(self, xmlroot):
         self.date = xmlroot.find("date").text
         self.time = xmlroot.find("time").text
-        self.traincount = xmlroot.find("tarincount").text
+        self.traincount = xmlroot.find("traincount").text
     def __str__(self):
         return "BART train count {self.date}; {self.time}\n{self.traincount} trains".format(self=self)
 
 class count(object):
-    def __init__(self, **params):
-        self.root = APIquery(cmd = "count", params = params).getxmlroot()
+    """bart.count(): BART Train Count"""
+    def __init__(self, **parameters):
+        self.root = APIquery(queryType = "bsa", cmd = "count", **parameters)
         self.result = COUNTstruct(self.root)
     def __str__(self):
         return self.result.__str__()
 
 class ELEVstruct:
+    """bart.ELEVstruct(): handles the xmltree root specific to the BART API elev command"""
     def __init__(self, xmlroot):
         self.date = xmlroot.find("date").text
         self.time = xmlroot.find("time").text
         self.bsa_id = []
-        for bsa in xmlroot.findall("bsa id"):
+        for bsa in xmlroot.findall("bsa"):
             station = bsa.find("station").text
             typeof  = bsa.find("type").text
             descrip = bsa.find("description").text
@@ -95,15 +89,18 @@ class ELEVstruct:
         strResult = "BART Elevator Advisory {self.date}; {self.time}\n".format(self=self)
         for bsa in self.bsa_id:
             strResult += "Station: {}\n" \
-                         "Description: [{}] {}\n".format(bsa["station"], bsa["descrip"])
+                         "Description: [{}] {}\n".format(bsa["station"], bsa["type"], bsa["descrip"])
         return strResult
 
+class elev(object):
+    """bart.elev(): BART Elevator Advisory"""
+    def __init__(self, **parameters):
+        self.root = APIquery(queryType = "bsa", cmd = "elev", **parameters)
+        self.result = ELEVstruct(self.root)
+    def __str__(self):
+        return self.result.__str__()
 
-
-# estimated time of departure: et
-# http://api.bart.gov/api/etd.aspx?cmd=etd&orig=RICH
-
-if __name__ == '__main__':
-    #bartAPI(cmd = "bsa")
+if __name__ == "__main__":
     print(bsa())
-
+    print(count())
+    print(elev())
