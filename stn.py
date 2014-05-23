@@ -13,10 +13,10 @@ def stn(orig="plza"):
     time = root.find('time').text
     time = time[:-3]
     station = root.find('station/name').text
-    print(station, date, time)
+    print(station, date, time, ",")
     for etd in root.findall('station/etd'):
         dest = etd.find('destination').text
-        print(dest)
+#         print(dest)
         for estimate in etd.findall('estimate'):
             minutes = estimate.find('minutes').text
             platform = estimate.find('platform').text
@@ -26,7 +26,7 @@ def stn(orig="plza"):
                 minutes += ' now'
             else:
                 minutes = '{:>2} minutes'.format(minutes)
-            print("{:>2} car train in {} on platform {}".format(length, minutes, platform))
+            print("{:>2} car {} train in {} on platform {},".format(length, dest, minutes, platform))
 
 
 if __name__ == "__main__":
