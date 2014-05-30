@@ -3,9 +3,9 @@
 import os, sys, urllib.request, urllib.parse
 import xml.etree.ElementTree as ET
 
-def stn(orig="plza"):
+def stn(orig = "plza", direct="s"):
     key = os.environ.get("BART_API_KEY")
-    url = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig={}&dir=s&key={}'.format(orig,key)
+    url = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig={}&dir={}&key={}'.format(orig,direct,key)
     with urllib.request.urlopen(url) as webpage:
         tree = ET.parse(webpage)
     root = tree.getroot()
@@ -13,7 +13,7 @@ def stn(orig="plza"):
     time = root.find('time').text
     time = time[:-3]
     station = root.find('station/name').text
-    print(station, date, time, ",")
+    print(station, date, time + ",")
     for etd in root.findall('station/etd'):
         dest = etd.find('destination').text
 #         print(dest)
@@ -30,7 +30,9 @@ def stn(orig="plza"):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
+    if len(sys.argv) == 2:
         stn(orig = sys.argv[1])
+    elif len(sys.argv) == 3:
+        stn(orig = sys.argv[1], direct = sys.argv[2])
     else:
-        stn()
+        stn(orig = "plza", direct = "s")
