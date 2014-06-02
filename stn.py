@@ -13,7 +13,7 @@ def stn(orig = "plza", direct="s"):
     time = root.find('time').text
     time = time[:-3]
     station = root.find('station/name').text
-    print(station, date, time + ",")
+    print(station, date, time)
     for etd in root.findall('station/etd'):
         dest = etd.find('destination').text
 #         print(dest)
@@ -22,11 +22,15 @@ def stn(orig = "plza", direct="s"):
             platform = estimate.find('platform').text
             direction = estimate.find('direction').text
             length = estimate.find("length").text
-            if minutes == 'leaving':
-                minutes += ' now'
+            if minutes.lower() == 'leaving':
+                minutes = 'now ' + minutes
             else:
-                minutes = '{:>2} minutes'.format(minutes)
-            print("{:>2} car {} train in {} on platform {},".format(length, dest, minutes, platform))
+                intmins = int(minutes)
+                minutes = 'in {:>2} minutes'.format(minutes)
+                if intmins == 1:
+                    minutes = minutes[:-1]
+#             print("{:>2} car {} train in {} on platform {},".format(length, dest, minutes, platform))
+            print("{:>2} car {} train {},".format(length, dest, minutes))
 
 
 if __name__ == "__main__":
