@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -tt
 
 import os, sys, urllib.request, urllib.parse
 import xml.etree.ElementTree as ET
@@ -111,6 +111,12 @@ class STNSstruct:
         self.stations = xmlroot.find("station")
         for station in stations.findall("station"):
             pass
+
+class stn:
+    """bart.stn: BART Station API"""
+    class stninfo(object):
+        """bart.stn.stninfo(): BART station information"""
+        pass
 
 
 if __name__ == "__main__":
