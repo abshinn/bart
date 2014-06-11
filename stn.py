@@ -1,19 +1,40 @@
-#!/usr/bin/env python3 -tt
+#!/usr/bin/env python2.7 -tt
 
-import os, sys, urllib.request, urllib.parse
+# import urllib
+import requests # <-- see if faster than urllib
+import os, sys
+# import os, sys, urllib.request, urllib.parse
 import xml.etree.ElementTree as ET
 
 def stn(orig = "plza", direct="s"):
+    # obtain system variable BART_API_KEY
     key = os.environ.get("BART_API_KEY")
-    url = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig={}&dir={}&key={}'.format(orig,direct,key)
-    with urllib.request.urlopen(url) as webpage:
-        tree = ET.parse(webpage)
+
+    # build url
+    url = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig={}&dir={}&key={}'.format(orig, direct, key)
+
+#     with urllib.urlopen(url) as webpage:
+#         tree = ET.parse(webpage.read())
+
+    webpage = requests.get(url)
+#     try:
+#         webpage = urllib.urlopen(url)
+#     except IOError: 
+#         sys.stderr.write("Couldn't connect to {}\n".format(url))
+#         return 
+#     except ValueError as ValueMsg:
+#         sys.stderr.write("Value Error: {}\n".format(ValueMsg))
+#         return
+    tree = ET.parse(webpage)
+    webpage.close()
+
     root = tree.getroot()
     date = root.find('date').text
     time = root.find('time').text
     time = time[:-3]
     station = root.find('station/name').text
     print(station, date, time)
+
     for etd in root.findall('station/etd'):
         dest = etd.find('destination').text
 #         print(dest)
