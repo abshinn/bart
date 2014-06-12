@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7 -tt
 
-# import urllib
-import requests # <-- see if faster than urllib
+import urllib
+# import requests # <-- see if faster than urllib
 import os, sys
 # import os, sys, urllib.request, urllib.parse
 import xml.etree.ElementTree as ET
@@ -13,10 +13,10 @@ def stn(orig = "plza", direct="s"):
     # build url
     url = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig={}&dir={}&key={}'.format(orig, direct, key)
 
-#     with urllib.urlopen(url) as webpage:
-#         tree = ET.parse(webpage.read())
+    with urllib.urlopen(url) as webpage:
+        tree = ET.parse(webpage)
+        root = tree.getroot()
 
-    webpage = requests.get(url)
 #     try:
 #         webpage = urllib.urlopen(url)
 #     except IOError: 
@@ -25,10 +25,7 @@ def stn(orig = "plza", direct="s"):
 #     except ValueError as ValueMsg:
 #         sys.stderr.write("Value Error: {}\n".format(ValueMsg))
 #         return
-    tree = ET.parse(webpage)
-    webpage.close()
 
-    root = tree.getroot()
     date = root.find('date').text
     time = root.find('time').text
     time = time[:-3]
