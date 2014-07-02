@@ -1,119 +1,86 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7 -tt
 
-import os, sys, urllib.request, urllib.parse
+import urllib
+import os
+import argparse
 import xml.etree.ElementTree as ET
-import pdb
+# import pdb
 
-envkey = os.environ.get("BART_API_KEY")
-if envkey:
-    key = envkey
-else:
-    print("BART_API_KEY environment variable does not exist")
-    sys.exit()
 
-def APIquery(API = "", **parameters):
-    """bart.APIquery(**parameters) retrieves the xmltree root object from http://api.bart.gov"""
-    if not API:
+class BARTetd(object):
+    """
+    BART estimated time of departure object
+    
+    Instantiate with origin station and direction kwargs, e.g.: 
+        mission = BARTetd(origin="16th", direction="n") 
+
+    Call BART API with etd method:
+        mission.etd()
+
+    Note: system variable BART_API_KEY is requred
+    """
+
+    def __init__(self, origin="plza", direction="s"):
+        """see BART API documentation for information on ETD API queries"""
+
+        self.origin = origin
+        self.direction = direction
+        self.key = os.environ.get("BART_API_KEY")
+
+        if self.key == None:
+            raise OSError("BART_API_KEY system variable not found.\n--> See README.md <--")
+
+        self.url = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig={self.origin}&dir={self.direction}&key={self.key}".format(self=self)
+
+
+    def etd(self):
+        """given a station of origin and direction, list train departure times"""
+
         try:
-            API = parameters["cmd"]
-        except KeyError:
-            print("cmd is a required keyword")
-            sys.exit()
-    parameters["key"] = key
-    queryStr = urllib.parse.urlencode(parameters)
-    url = "http://api.bart.gov/api/{}.aspx?{}".format(API, queryStr)
-    #print("Querying BART with: {}".format(url))
-    with urllib.request.urlopen(url) as BART:
-        tree = ET.parse(BART)
-    root = tree.getroot()
-    return root
+            webpage = urllib.urlopen(self.url)
+        except IOError as msg:
+            print "IOError: {}\nCould not connect to API:\n\t{}".format(msg, self.url)
+            return 
 
-class BSAstruct:
-    """bart.BSAstruct(): handles the xmltree root specific to the BART API bsa command"""
-    def __init__(self, xmlroot):
-        self.date = xmlroot.find("date").text
-        self.time = xmlroot.find("time").text
-        self.advisory = []
-        for bsa in xmlroot.findall("bsa"):
-            station = bsa.find("station").text
-            descrip = bsa.find("description").text
-            try:
-                typeadv = bsa.find("type").text
-            except AttributeError:
-                typeadv = None
-            self.advisory.append({"station":station, "descrip":descrip, "type":typeadv})
-    def __str__(self):
-        strResult = "BART Service Advisory {self.date}; {self.time}\n".format(self=self)
-        for bsa in self.advisory:
-            strResult += "Station: {}\n" \
-                         "Description: [{}] {}\n".format(bsa["station"], bsa["type"], bsa["descrip"])
-        return strResult
+        tree = ET.parse(webpage)
+        webpage.close()
+        root = tree.getroot()
 
-class COUNTstruct:
-    """bart.COUNTstruct(): handles the xmltree root specific to the BART API count command"""
-    def __init__(self, xmlroot):
-        self.date = xmlroot.find("date").text
-        self.time = xmlroot.find("time").text
-        self.traincount = xmlroot.find("traincount").text
-    def __str__(self):
-        return "BART train count {self.date}; {self.time}\n{self.traincount} trains\n".format(self=self)
+        time = root.find("time").text
+        time = time[:-3]
+        station = root.find("station/name").text
+        print "{} at {}".format(station, time)
 
-class ELEVstruct:
-    """bart.ELEVstruct(): handles the xmltree root specific to the BART API elev command"""
-    def __init__(self, xmlroot):
-        self.date = xmlroot.find("date").text
-        self.time = xmlroot.find("time").text
-        self.bsa_id = []
-        for bsa in xmlroot.findall("bsa"):
-            station = bsa.find("station").text
-            typeof  = bsa.find("type").text
-            descrip = bsa.find("description").text
-            self.bsa_id.append({"station":station, "type":typeof, "descrip":descrip})
-    def __str__(self):
-        strResult = "BART Elevator Advisory {self.date}; {self.time}\n".format(self=self)
-        for bsa in self.bsa_id:
-            strResult += "Station: {}\n" \
-                         "Description: [{}] {}\n".format(bsa["station"], bsa["type"], bsa["descrip"])
-        return strResult
-
-
-class bsa:
-    """bart.bsa: BART Service Advisory API"""
-
-    class bsa(object):
-        """bart.bsa.bsa()"""
-        def __init__(self, **parameters):
-            self.root = APIquery(API = "bsa", cmd = "bsa", **parameters)
-            #self.string = ET.tostring(self.root, encoding = "unicode") # string result
-            self.result = BSAstruct(self.root)
-        def __str__(self):
-            return self.result.__str__()
-
-    class count(object):
-        """bart.bsa.count(): BART Train Count"""
-        def __init__(self, **parameters):
-            self.root = APIquery(API = "bsa", cmd = "count", **parameters)
-            self.result = COUNTstruct(self.root)
-        def __str__(self):
-            return self.result.__str__()
-
-    class elev(object):
-        """bart.bsa.elev(): BART Elevator Advisory"""
-        def __init__(self, **parameters):
-            self.root = APIquery(API = "bsa", cmd = "elev", **parameters)
-            self.result = ELEVstruct(self.root)
-        def __str__(self):
-            return self.result.__str__()
-
-class STNSstruct:
-    """bart.STNSstruct(): handles the xmltree root specific to the BART API stns command"""
-    def __init__(self, xmlroot):
-        self.stations = xmlroot.find("station")
-        for station in stations.findall("station"):
-            pass
+        for etd in root.findall("station/etd"):
+            dest = etd.find("destination").text
+            for estimate in etd.findall("estimate"):
+                minutes = estimate.find("minutes").text
+                if minutes.lower() != "leaving":
+                    minutes = "in {:>2} minutes".format(minutes)
+                    if minutes.strip() == "1":
+                        minutes = minutes[:-1]
+                else:
+                    minutes = "now " + minutes
+                print "{:>18} train {:>13},".format(dest.replace(" ",""), minutes)
 
 
 if __name__ == "__main__":
-    print(bsa.bsa())
-    print(bsa.count())
-    print(bsa.elev())
+
+    parser = argparse.ArgumentParser() 
+    parser.add_argument(  "station", help="display schedule for given station")
+    parser.add_argument("direction", help="display routes for a given direction")
+    parser.add_argument("-t", "--tracker", help="tracker: repeat command every minute until keyboard interrupt", action="store_true")
+    args = parser.parse_args()
+
+    trains = BARTetd(origin = args.station, direction = args.direction)
+
+    if args.tracker:
+        while 1:
+            os.system("clear")
+            print "{} {}".format(args.station, args.direction)
+            trains.etd()
+            exitstatus = os.system("sleep 59")
+            if exitstatus:
+                break
+    else:
+        trains.etd()
