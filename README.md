@@ -9,7 +9,7 @@ Access real-time BART train departures using python and the [Real Bart API](http
 
 ### Setup and Use
 
-A BART API key is required and easily obtained from bart.gov. Once obtained, name an environment variable named BART\_API\_KEY in your appropriate login script, like so:
+Your very own BART API key is required and can be requested from [api.bart.gov](http://api.bart.gov/). Once obtained, name an environment variable named BART\_API\_KEY in your appropriate login script:
 
 ```bash
 $ echo export BART_API_KEY=YOUR_KEY >> ~/.bash_profile
@@ -23,7 +23,7 @@ Personally, I alias the python script for easy access within the terminal shell.
 $ echo alias bart="~/bart/./stn.py" >> ~/.bash_profile
 ```
 
-To display the ETAs for north-bound trains for the 16th Street Mission station:
+To display the ETAs for north-bound trains at the 16th Street Mission station.
 
 ```bash
 $ bart 16th n
@@ -42,7 +42,7 @@ Pittsburg/BayPoint train in 30 minutes,
           Richmond train in 39 minutes,
 ```
 
-To automatically display the ETAs every minute, add the tracking flag:
+To automatically display the ETAs every minute, include the tracking flag.
 
 ```bash
 $ bart civc s -t
@@ -52,7 +52,7 @@ $ bart civc s -t
 
 ### Pipe it!
 
-Sort on ETA field.
+Perfrom a numeric sort on the ETA field.
 
 ```bash
 $ bart 16th n | tail +2 | sort -n -k4,4
