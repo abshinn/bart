@@ -1,10 +1,51 @@
-#!/usr/bin/env python2.7 -tt
+#!/usr/bin/env python2.7 -tt -B
 
 import urllib
 import os
 import argparse
 import xml.etree.ElementTree as ET
-# import pdb
+import pdb
+
+class BARTstn(object):
+    """
+    list BART station information
+    """
+
+    def __init__(self, abbr=True, gtfs=False, city=False):
+        """see BART API documentation for information on STN API queries"""
+
+        self.abbr = abbr
+        self.gtfs = gtfs
+        self.city = city
+        self.key = os.environ.get("BART_API_KEY")
+
+        if self.key == None:
+            raise OSError("BART_API_KEY system variable not found.\n--> See README.md <--")
+
+        self.url = "http://api.bart.gov/api/stn.aspx?cmd=stns&key={self.key}".format(self=self)
+
+    def stns(self):
+        """call bart stn api"""
+
+        try:
+            webpage = urllib.urlopen(self.url)
+        except IOError as msg:
+            print "IOError: {}\nCould not connect to API:\n\t{}".format(msg, self.url)
+            return 
+
+        tree = ET.parse(webpage)
+        webpage.close()
+        root = tree.getroot()
+  
+        for station in root.findall("stations/station"):
+            name = station.find("name").text
+            abbr = station.find("abbr").text
+            city = station.find("city").text
+            lat = station.find("gtfs_latitude").text
+            lon = station.find("gtfs_longitude").text
+
+            if self.abbr:
+                print "{:>5} {}".format(abbr, name)
 
 
 class BARTetd(object):
@@ -64,23 +105,32 @@ class BARTetd(object):
                 print "{:>18} train {:>13},".format(dest.replace(" ",""), minutes)
 
 
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser() 
+    parser.add_argument("-ls", "--stns", help="list station abbreviations", action="store_true")
     parser.add_argument(  "station", help="display schedule for given station")
     parser.add_argument("direction", help="display routes for a given direction")
     parser.add_argument("-t", "--tracker", help="tracker: repeat command every minute until keyboard interrupt", action="store_true")
     args = parser.parse_args()
 
-    trains = BARTetd(origin = args.station, direction = args.direction)
+    if stns:
+        BARTstn().stns()
 
-    if args.tracker:
-        while 1:
-            os.system("clear")
-            print "{} {}".format(args.station, args.direction)
-            trains.etd()
-            exitstatus = os.system("sleep 59")
-            if exitstatus:
-                break
     else:
-        trains.etd()
+        trains = BARTetd(origin = args.station, direction = args.direction)
+
+        if args.tracker:
+            while 1:
+                os.system("clear")
+                print "{} {}".format(args.station, args.direction)
+                trains.etd()
+                exitstatus = os.system("sleep 59")
+                if exitstatus:
+                    break
+        else:
+            trains.etd()
+
+
+if __name__ == "__main__":
+    main()
+
