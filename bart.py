@@ -45,7 +45,7 @@ class BARTstn(object):
             lon = station.find("gtfs_longitude").text
 
             if self.abbr:
-                print "{:>5} {}".format(abbr, name)
+                print "{:>5} -- {}".format(abbr, name)
 
 
 class BARTetd(object):
@@ -106,31 +106,31 @@ class BARTetd(object):
 
 
 def main():
-    parser = argparse.ArgumentParser() 
-    parser.add_argument("-ls", "--stns", help="list station abbreviations", action="store_true")
+
+    with open("stationkey.txt", "r") as S:
+        station_key = "station key\n" + "-"*11 + "\n" + S.read()
+
+    parser = argparse.ArgumentParser(prog="bart", 
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     epilog=station_key)
     parser.add_argument(  "station", help="display schedule for given station")
     parser.add_argument("direction", help="display routes for a given direction")
     parser.add_argument("-t", "--tracker", help="tracker: repeat command every minute until keyboard interrupt", action="store_true")
     args = parser.parse_args()
 
-    if stns:
-        BARTstn().stns()
+    trains = BARTetd(origin = args.station, direction = args.direction)
 
-    else:
-        trains = BARTetd(origin = args.station, direction = args.direction)
-
-        if args.tracker:
-            while 1:
-                os.system("clear")
-                print "{} {}".format(args.station, args.direction)
-                trains.etd()
-                exitstatus = os.system("sleep 59")
-                if exitstatus:
-                    break
-        else:
+    if args.tracker:
+        while 1:
+            os.system("clear")
+            print "{} {}".format(args.station, args.direction)
             trains.etd()
+            exitstatus = os.system("sleep 59")
+            if exitstatus:
+                break
+    else:
+        trains.etd()
 
 
 if __name__ == "__main__":
     main()
-
