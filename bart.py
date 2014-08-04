@@ -4,7 +4,6 @@ import urllib
 import os
 import argparse
 import xml.etree.ElementTree as ET
-import pdb
 
 class BARTstn(object):
     """
@@ -107,8 +106,9 @@ class BARTetd(object):
 
 def main():
 
-    with open("stationkey.txt", "r") as S:
-        station_key = "station key\n" + "-"*11 + "\n" + S.read()
+    # assumes bart/ is in the user's home directory
+    with open(os.path.expanduser("~/bart/stationkey.txt"), "r") as Skey:
+        station_key = "station key\n" + "-"*11 + "\n" + Skey.read()
 
     parser = argparse.ArgumentParser(prog="bart", 
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
