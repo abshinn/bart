@@ -7,7 +7,7 @@ Access real-time BART train departures using python and the [Real Bart API](http
 
 </br>
 
-### Setup and Use
+### Setup
 
 Your very own BART API key is required and can be requested from [api.bart.gov](http://api.bart.gov/). Once obtained, name an environment variable named BART\_API\_KEY in your appropriate login script:
 
@@ -17,10 +17,10 @@ $ echo export BART_API_KEY=YOUR_KEY >> ~/.bash_profile
 
 </br>
 
-Personally, I alias the python script for easy access within the terminal shell.
+To use `bart` as I do in the terminal, alias `bart.py` by adding `alias bart="~/bart/./bart.py"` to your appropriate shell profile, or append by the following command:
 
 ```bash
-$ echo alias bart="~/bart/./stn.py" >> ~/.bash_profile
+$ echo alias bart="~/bart/./bart.py" >> ~/.bash_profile
 ```
 
 To display the ETAs for north-bound trains at the 16th Street Mission station.
