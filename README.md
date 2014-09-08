@@ -27,19 +27,25 @@ To display the ETAs for north-bound trains at the 16th Street Mission station.
 
 ```bash
 $ bart 16th n
-16th St. Mission at 03:20:06 PM 
- Dublin/Pleasanton train in 13 minutes,
- Dublin/Pleasanton train in 28 minutes,
- Dublin/Pleasanton train in 43 minutes,
-           Fremont train in  7 minutes,
-           Fremont train in 25 minutes,
-           Fremont train in 37 minutes,
-Pittsburg/BayPoint train   now Leaving,
-Pittsburg/BayPoint train in 15 minutes,
-Pittsburg/BayPoint train in 30 minutes,
-          Richmond train in  8 minutes,
-          Richmond train in 23 minutes,
-          Richmond train in 39 minutes,
+```
+
+```
+Bart Service Status
+	No delays reported.
+
+16th St. Mission at 10:57:34 AM 
+ Dublin/Pleasanton train in  6 minutes,
+ Dublin/Pleasanton train in 20 minutes,
+ Dublin/Pleasanton train in 35 minutes,
+           Fremont train in 12 minutes,
+           Fremont train in 27 minutes,
+           Fremont train in 42 minutes,
+Pittsburg/BayPoint train in  9 minutes,
+Pittsburg/BayPoint train in 23 minutes,
+Pittsburg/BayPoint train in 38 minutes,
+          Richmond train in 15 minutes,
+          Richmond train in 30 minutes,
+          Richmond train in 46 minutes,
 ```
 
 To automatically display the ETAs every minute, include the tracking flag.
