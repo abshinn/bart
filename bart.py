@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7 -tt -B
 
+import pdb
 import urllib
 import os
 import argparse
@@ -123,7 +124,12 @@ class BARTetd(object):
         webpage.close()
         root = tree.getroot()
 
-        time = root.find("time").text
+        try:
+            time = root.find("time").text
+        except AttributeError:
+            print "\n".join(ET.tostringlist(root, method="text"))
+            return
+
         time = time[:-3]
         station = root.find("station/name").text
         print "{} at {}".format(station, time)
