@@ -5,6 +5,43 @@ import os
 import argparse
 import xml.etree.ElementTree as ET
 
+
+class BARTbsa(object):
+    """
+    BART service advisories
+    """
+
+    def __init__(self):
+        """see BART API documentation for information on BSA API queries"""
+
+        self.key = os.environ.get("BART_API_KEY")
+
+        if self.key == None:
+            raise OSError("BART_API_KEY system variable not found.\n--> See README.md <--")
+
+        self.url = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&date=today&key={self.key}".format(self=self)
+
+    def bsa(self):
+        """call bart bsa api"""
+
+        try:
+            webpage = urllib.urlopen(self.url)
+        except IOError as msg:
+            print "IOError: {}\nCould not connect to API:\n\t{}".format(msg, self.url)
+            return 
+
+        tree = ET.parse(webpage)
+        webpage.close()
+        root = tree.getroot()
+
+        print "Bart Service Status"
+
+        for advisory in root.findall("bsa"):
+            print "\t{}".format(advisory.find("description").text)
+
+        print
+
+
 class BARTstn(object):
     """
     list BART station information
@@ -129,6 +166,7 @@ def main():
             if exitstatus:
                 break
     else:
+        BARTbsa().bsa()
         trains.etd()
 
 
