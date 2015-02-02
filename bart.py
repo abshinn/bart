@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7 -tt -B
 
-import pdb
+from datetime import datetime, timedelta
 import urllib
 import os
 import argparse
@@ -130,7 +130,6 @@ class BARTetd(object):
             print "\n".join(ET.tostringlist(root, method="text"))
             return
 
-        time = time[:-3]
         station = root.find("station/name").text
         print "{} at {}".format(station, time)
 
@@ -138,13 +137,21 @@ class BARTetd(object):
             dest = etd.find("destination").text
             for estimate in etd.findall("estimate"):
                 minutes = estimate.find("minutes").text
-                if minutes.lower() != "leaving":
-                    minutes = "in {:>2} minutes".format(minutes)
-                    if minutes.strip() == "1":
-                        minutes = minutes[:-1]
+
+                if minutes.lower() == "leaving":
+                    minute_str = "now " + minutes
+
                 else:
-                    minutes = "now " + minutes
-                print "{:>18} train {:>13},".format(dest.replace(" ",""), minutes)
+                    minute_str = "in {:>2} minutes".format(minutes)
+                    if minute_str.strip() == "1":
+                        minute_str = minute_str[:-1]
+
+                    departure = datetime.strptime(time, "%H:%M:%S %p %Z") + timedelta(minutes=int(minutes))
+                    depart_at = datetime.strftime(departure, "%H:%M")
+
+                    minute_str = "{} [{}]".format(minute_str, depart_at)
+
+                print "{:>18} train {:>13},".format(dest.replace(" ",""), minute_str)
 
 
 def main():
