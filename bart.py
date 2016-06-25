@@ -139,16 +139,17 @@ class BARTetd(object):
         try:
             time = root.find("time").text
         except AttributeError:
-            print "\n".join(ET.tostringlist(root, method="text"))
-            return
+            msg = "\n".join(ET.tostringlist(root, method="text"))
+            raise Exception(msg)
 
         station = root.find("station/name").text
         print "{} at {}".format(station, time)
 
         for etd in root.findall("station/etd"):
-            dest = etd.find("destination").text
+            dest = etd.find("destination").text.replace(" ", "")
             for estimate in etd.findall("estimate"):
                 minutes = estimate.find("minutes").text
+                length = estimate.find("length").text
 
                 if minutes.lower() == "leaving":
                     minute_str = "now " + minutes
@@ -162,15 +163,13 @@ class BARTetd(object):
                                 + timedelta(minutes=int(minutes))
                     depart_at = datetime.strftime(departure, "%H:%M")
 
-                    minute_str = "{} [{}]".format(minute_str, depart_at)
-
-                print "{:>18} train {:>13},"\
-                    .format(dest.replace(" ",""), minute_str)
+                print "\t[{}] {:>2} car {} train {},"\
+                    .format(depart_at, length, dest, minute_str)
 
 
 def main():
 
-    # assumes bart/ is in the user's home directory
+    # assume bart/ is in the home directory
     with open(os.path.expanduser("~/bart/stationkey.txt"), "r") as Skey:
         station_key = "station key\n" + "-"*11 + "\n" + Skey.read()
 
