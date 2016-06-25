@@ -18,18 +18,21 @@ class BARTbsa(object):
         self.key = os.environ.get("BART_API_KEY")
 
         if self.key == None:
-            raise OSError("BART_API_KEY system variable not found.\n--> See README.md <--")
+            raise OSError("BART_API_KEY system variable not found."
+                          "\n--> See README.md <--")
 
-        self.url = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&date=today&key={self.key}".format(self=self)
+        self.url = ("http://api.bart.gov/api/bsa.aspx?cmd=bsa&date=today"
+                    "&key={self.key}").format(self=self)
 
     def bsa(self):
         """call bart bsa api"""
 
         try:
             webpage = urllib.urlopen(self.url)
-        except IOError as msg:
-            print "IOError: {}\nCould not connect to API:\n\t{}".format(msg, self.url)
-            return 
+        except IOError as err_msg:
+            msg = ("IOError: {}\nCould not connect to "
+                   "API:\n\t{}").format(err_msg, self.url)
+            raise Exception(msg)
 
         tree = ET.parse(webpage)
         webpage.close()
@@ -57,23 +60,27 @@ class BARTstn(object):
         self.key = os.environ.get("BART_API_KEY")
 
         if self.key == None:
-            raise OSError("BART_API_KEY system variable not found.\n--> See README.md <--")
+            msg = ("BART_API_KEY system variable not found."
+                   "\n--> See README.md <--")
+            raise Exception(msg)
 
-        self.url = "http://api.bart.gov/api/stn.aspx?cmd=stns&key={self.key}".format(self=self)
+        self.url = ("http://api.bart.gov/api/stn.aspx?cmd=stns&"
+                    "key={self.key}").format(self=self)
 
     def stns(self):
         """call bart stn api"""
 
         try:
             webpage = urllib.urlopen(self.url)
-        except IOError as msg:
-            print "IOError: {}\nCould not connect to API:\n\t{}".format(msg, self.url)
-            return 
+        except IOError as err_msg:
+            msg = ("IOError: {}\nCould not connect to "
+                   "API:\n\t{}").format(err_msg, self.url)
+            raise Exception(msg)
 
         tree = ET.parse(webpage)
         webpage.close()
         root = tree.getroot()
-  
+
         for station in root.findall("stations/station"):
             name = station.find("name").text
             abbr = station.find("abbr").text
@@ -88,9 +95,9 @@ class BARTstn(object):
 class BARTetd(object):
     """
     BART estimated time of departure object
-    
-    Instantiate with origin station and direction kwargs, e.g.: 
-        mission = BARTetd(origin="16th", direction="n") 
+
+    Instantiate with origin station and direction kwargs, e.g.:
+        mission = BARTetd(origin="16th", direction="n")
 
     Call BART API with etd method:
         mission.etd()
@@ -106,9 +113,13 @@ class BARTetd(object):
         self.key = os.environ.get("BART_API_KEY")
 
         if self.key == None:
-            raise OSError("BART_API_KEY system variable not found.\n--> See README.md <--")
+            msg = ("BART_API_KEY system variable not found."
+                   "\n--> See README.md <--")
+            raise Exception(msg)
 
-        self.url = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig={self.origin}&dir={self.direction}&key={self.key}".format(self=self)
+        self.url = ("http://api.bart.gov/api/etd.aspx?cmd=etd"
+                    "&orig={self.origin}&dir={self.direction}"
+                    "&key={self.key}").format(self=self)
 
 
     def etd(self):
@@ -116,9 +127,10 @@ class BARTetd(object):
 
         try:
             webpage = urllib.urlopen(self.url)
-        except IOError as msg:
-            print "IOError: {}\nCould not connect to API:\n\t{}".format(msg, self.url)
-            return 
+        except IOError as err_msg:
+            msg = ("IOError: {}\nCould not connect to "
+                   "API:\n\t{}").format(msg, self.url)
+            raise Exception(msg)
 
         tree = ET.parse(webpage)
         webpage.close()
@@ -146,12 +158,14 @@ class BARTetd(object):
                     if minute_str.strip() == "1":
                         minute_str = minute_str[:-1]
 
-                    departure = datetime.strptime(time, "%H:%M:%S %p %Z") + timedelta(minutes=int(minutes))
+                    departure = datetime.strptime(time, "%H:%M:%S %p %Z")\
+                                + timedelta(minutes=int(minutes))
                     depart_at = datetime.strftime(departure, "%H:%M")
 
                     minute_str = "{} [{}]".format(minute_str, depart_at)
 
-                print "{:>18} train {:>13},".format(dest.replace(" ",""), minute_str)
+                print "{:>18} train {:>13},"\
+                    .format(dest.replace(" ",""), minute_str)
 
 
 def main():
@@ -160,15 +174,17 @@ def main():
     with open(os.path.expanduser("~/bart/stationkey.txt"), "r") as Skey:
         station_key = "station key\n" + "-"*11 + "\n" + Skey.read()
 
-    parser = argparse.ArgumentParser(prog="bart", 
-                                     formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     epilog=station_key)
+    parser = argparse\
+        .ArgumentParser(prog="bart",
+                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                        epilog=station_key)
     parser.add_argument(  "station", help="display schedule for given station")
     parser.add_argument("direction", help="display routes for a given direction")
-    parser.add_argument("-t", "--tracker", help="tracker: repeat command every minute until keyboard interrupt", action="store_true")
+    tracker_help = "tracker: repeat command every minute until keyboard interrupt"
+    parser.add_argument("-t", "--tracker", help=tracker_help, action="store_true")
     args = parser.parse_args()
 
-    trains = BARTetd(origin = args.station, direction = args.direction)
+    trains = BARTetd(origin=args.station, direction=args.direction)
 
     if args.tracker:
         while 1:
