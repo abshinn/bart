@@ -152,14 +152,16 @@ class BARTetd(object):
 
                 if minutes.lower() == "leaving":
                     minute_str = "now leaving"
+
+                    depart_at = "--:--"
                 else:
                     minute_str = "in {:>2} minutes".format(minutes)
                     if minutes.strip() == "1":
                         minute_str = minute_str[:-1]
 
-                departure = datetime.strptime(time, "%H:%M:%S %p %Z")\
-                    + timedelta(minutes=int(minutes))
-                depart_at = datetime.strftime(departure, "%H:%M")
+                    departure = datetime.strptime(time, "%H:%M:%S %p %Z")\
+                        + timedelta(minutes=int(minutes))
+                    depart_at = datetime.strftime(departure, "%H:%M")
 
                 print "\t[{}] {:>2} car {} train {},"\
                     .format(depart_at, length, dest, minute_str)
