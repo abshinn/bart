@@ -17,7 +17,7 @@ class BARTbsa(object):
 
         self.key = os.environ.get("BART_API_KEY")
 
-        if self.key == None:
+        if self.key is None:
             raise OSError("BART_API_KEY system variable not found."
                           "\n--> See README.md <--")
 
@@ -59,7 +59,7 @@ class BARTstn(object):
         self.city = city
         self.key = os.environ.get("BART_API_KEY")
 
-        if self.key == None:
+        if self.key is None:
             msg = ("BART_API_KEY system variable not found."
                    "\n--> See README.md <--")
             raise Exception(msg)
@@ -102,17 +102,17 @@ class BARTetd(object):
     Call BART API with etd method:
         mission.etd()
 
-    Note: system variable BART_API_KEY is requred
+    Note: system variable BART_API_KEY is requred, see README.md
     """
 
-    def __init__(self, origin="plza", direction="s"):
-        """see BART API documentation for information on ETD API queries"""
+    def __init__(self, origin="mont", direction="n"):
+        """ See BART API documentation for information on ETD API queries. """
 
         self.origin = origin
         self.direction = direction
         self.key = os.environ.get("BART_API_KEY")
 
-        if self.key == None:
+        if self.key is None:
             msg = ("BART_API_KEY system variable not found."
                    "\n--> See README.md <--")
             raise Exception(msg)
@@ -121,13 +121,12 @@ class BARTetd(object):
                     "&orig={self.origin}&dir={self.direction}"
                     "&key={self.key}").format(self=self)
 
-
     def etd(self):
-        """given a station of origin and direction, list train departure times"""
+        """ Given origin and direction, list train departure times. """
 
         try:
             webpage = urllib.urlopen(self.url)
-        except IOError as err_msg:
+        except IOError as msg:
             msg = ("IOError: {}\nCould not connect to "
                    "API:\n\t{}").format(msg, self.url)
             raise Exception(msg)
@@ -152,15 +151,16 @@ class BARTetd(object):
                 length = estimate.find("length").text
 
                 if minutes.lower() == "leaving":
-                    minute_str = "now " + minutes
+                    minute_str = "now leaving"
 
+                    depart_at = "--:--"
                 else:
                     minute_str = "in {:>2} minutes".format(minutes)
-                    if minute_str.strip() == "1":
+                    if minutes.strip() == "1":
                         minute_str = minute_str[:-1]
 
                     departure = datetime.strptime(time, "%H:%M:%S %p %Z")\
-                                + timedelta(minutes=int(minutes))
+                        + timedelta(minutes=int(minutes))
                     depart_at = datetime.strftime(departure, "%H:%M")
 
                 print "\t[{}] {:>2} car {} train {},"\
@@ -168,6 +168,7 @@ class BARTetd(object):
 
 
 def main():
+    ''' Main hanlder for cmdline BART. '''
 
     # assume bart/ is in the home directory
     with open(os.path.expanduser("~/bart/stationkey.txt"), "r") as Skey:
