@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7 -tt -B
+#!/usr/bin/env python2 -tt -B
 
 from datetime import datetime, timedelta
 import urllib
