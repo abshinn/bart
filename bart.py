@@ -1,10 +1,18 @@
-#!/usr/bin/env python2 -tt -B
+#!/usr/bin/env python3 -tt -B
 
 from datetime import datetime, timedelta
-import urllib
+import urllib.request
 import os
 import argparse
 import xml.etree.ElementTree as ET
+
+
+def get_xml_tree_from_url(url):
+    """ Retrieve ElementTree root object from an XML API URL. """
+    with urllib.request.urlopen(url) as response:
+        tree = ET.parse(response)
+    root = tree.getroot()
+    return root
 
 
 class BARTbsa(object):
@@ -27,23 +35,14 @@ class BARTbsa(object):
     def bsa(self):
         """call bart bsa api"""
 
-        try:
-            webpage = urllib.urlopen(self.url)
-        except IOError as err_msg:
-            msg = ("IOError: {}\nCould not connect to "
-                   "API:\n\t{}").format(err_msg, self.url)
-            raise Exception(msg)
+        root = get_xml_tree_from_url(self.url)
 
-        tree = ET.parse(webpage)
-        webpage.close()
-        root = tree.getroot()
-
-        print "Bart Service Status"
+        print("Bart Service Status")
 
         for advisory in root.findall("bsa"):
-            print "\t{}".format(advisory.find("description").text)
+            print("\t{}".format(advisory.find("description").text))
 
-        print
+        print()
 
 
 class BARTstn(object):
@@ -70,16 +69,7 @@ class BARTstn(object):
     def stns(self):
         """call bart stn api"""
 
-        try:
-            webpage = urllib.urlopen(self.url)
-        except IOError as err_msg:
-            msg = ("IOError: {}\nCould not connect to "
-                   "API:\n\t{}").format(err_msg, self.url)
-            raise Exception(msg)
-
-        tree = ET.parse(webpage)
-        webpage.close()
-        root = tree.getroot()
+        root = get_xml_tree_from_url(self.url)
 
         for station in root.findall("stations/station"):
             name = station.find("name").text
@@ -89,7 +79,7 @@ class BARTstn(object):
             lon = station.find("gtfs_longitude").text
 
             if self.abbr:
-                print "{:>5} -- {}".format(abbr, name)
+                print("{:>5} -- {}".format(abbr, name))
 
 
 class BARTetd(object):
@@ -124,16 +114,7 @@ class BARTetd(object):
     def etd(self):
         """ Given origin and direction, list train departure times. """
 
-        try:
-            webpage = urllib.urlopen(self.url)
-        except IOError as msg:
-            msg = ("IOError: {}\nCould not connect to "
-                   "API:\n\t{}").format(msg, self.url)
-            raise Exception(msg)
-
-        tree = ET.parse(webpage)
-        webpage.close()
-        root = tree.getroot()
+        root = get_xml_tree_from_url(self.url)
 
         try:
             time = root.find("time").text
@@ -142,7 +123,7 @@ class BARTetd(object):
             raise Exception(msg)
 
         station = root.find("station/name").text
-        print "{} at {}".format(station, time)
+        print("{} at {}".format(station, time))
 
         for etd in root.findall("station/etd"):
             dest = etd.find("destination").text.replace(" ", "")
@@ -163,8 +144,8 @@ class BARTetd(object):
                         + timedelta(minutes=int(minutes))
                     depart_at = datetime.strftime(departure, "%H:%M")
 
-                print "\t[{}] {:>2} car {} train {},"\
-                    .format(depart_at, length, dest, minute_str)
+                print("\t[{}] {:>2} car {} train {},"\
+                    .format(depart_at, length, dest, minute_str))
 
 
 def main():
@@ -189,7 +170,7 @@ def main():
     if args.tracker:
         while 1:
             os.system("clear")
-            print "{} {}".format(args.station, args.direction)
+            print("{} {}".format(args.station, args.direction))
             trains.etd()
             exitstatus = os.system("sleep 59")
             if exitstatus:
